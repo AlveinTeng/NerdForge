@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/talent/Documents/games101/build",
+  "command": "/usr/bin/clang++  -I/opt/homebrew/Cellar/eigen/3.4.0_1/include -I/opt/homebrew/Cellar/opencv/4.8.0_6/include -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk -mmacosx-version-min=13.2 -o CMakeFiles/Transformation.dir/main.cpp.o -c /Users/talent/Documents/games101/pa0/main.cpp",
+  "file": "/Users/talent/Documents/games101/pa0/main.cpp",
+  "output": "CMakeFiles/Transformation.dir/main.cpp.o"
+}
+]

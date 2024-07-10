@@ -1,0 +1,3 @@
+/Users/talent/Documents/games101/build/CMakeFiles/Transformation.dir
+/Users/talent/Documents/games101/build/CMakeFiles/edit_cache.dir
+/Users/talent/Documents/games101/build/CMakeFiles/rebuild_cache.dir
