@@ -135,10 +135,9 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     for (int x = static_cast<int>(min_x); x <= static_cast<int>(max_x); ++x) {
         for (int y = static_cast<int>(min_y); y <= static_cast<int>(max_y); ++y) {
             float color_r = 0, color_g = 0, color_b = 0;
-            float min_depth = std::numeric_limits<float>::infinity(); // 初始化为最大深度
             int count = 0; // 用于统计在三角形内的样本数目
-            float totalzValue = 0;
-
+            int index = get_index(x,y);
+            float min_depth = std::numeric_limits<float>::infinity();
             // 对每个像素进行 2x2 采样
             for (const auto& offset : sample_offsets) {
                 float sample_x = x + offset.x();
@@ -151,27 +150,31 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
                 if (alpha >= 0 && beta >= 0 && gamma >= 0) {
                     float w_reciprocal = 1.0f / (alpha / a.w() + beta / b.w() + gamma / c.w());
                     float z_interpolated = (alpha * a.z() / a.w() + beta * b.z() / b.w() + gamma * c.z() / c.w()) * w_reciprocal;
-
                     // int index = get_index(sample_x, sample_y); // 计算当前样本点的索引
+
                     // if (depth_buf[index] > z_interpolated) {
-                    depth_buf[index] = z_interpolated;
-                    totalzValue += z_interpolated;
-                    Eigen::Vector3f color = t.getColor();
-                    color_r += color[0];
-                    color_g += color[1];
-                    color_b += color[2];
-                    count++;
+                    //     depth_buf[index] = z_interpolated;
+                        
+                    //     // color_r += color[0];
+                    //     // color_g += color[1];
+                    //     // color_b += color[2];
+                    //     count++;
                     
-                    // 更新最小深度
-                    // min_depth = std::min(min_depth, z_interpolated);
                     // }
+                    count ++;
+                    if(min_depth > z_interpolated){
+                        min_depth = z_interpolated;
+                    }
                 }
             }
 
             // 如果至少一个样本在三角形内，则根据深度测试更新像素颜色
-            if (count > 0 && (totalzValue / count) < depth_buf[get_index(x, y)]) {
-                depth_buf[get_index(x, y)] = totalzValue / count;
-                set_pixel(Vector3f(x, y, 1), Eigen::Vector3f(color_r / count, color_g / count, color_b / count));
+            if (count > 0 && min_depth < depth_buf[index]) {
+                depth_buf[index] = min_depth;
+                Eigen::Vector3f color = t.getColor();
+                color *= count;
+                color /= 4;
+                set_pixel(Eigen::Vector3f(x, y, depth_buf[index]), color);
             }
         }
     }
