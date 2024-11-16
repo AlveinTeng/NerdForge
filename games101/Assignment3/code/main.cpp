@@ -100,6 +100,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
 
     }
     Eigen::Vector3f texture_color;
@@ -126,8 +127,52 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
 
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
-        // components are. Then, accumulate that result on the *result_color* object.
+        Eigen::Vector3f ambient = ka.array() * amb_light_intensity.array();
+
+        // Calculate the light direction and normalize it
+        Eigen::Vector3f light_dir = (light.position - point).normalized();
+
+        // Calculate the distance attenuation (inverse square law)
+        float distance = (light.position - point).norm();
+        float attenuation = 1.0f / (distance * distance);
+
+        // Calculate the diffuse component
+        float diff = std::max(0.0f, normal.dot(light_dir));
+        Eigen::Vector3f diffuse = kd.array() * (light.intensity.array() * diff * attenuation);
+
+
+        // float spec_distance = (eye_pos - point).norm();
+
+        // float spec_intensity_coefficient = 1.0f / (spec_distance * spec_distance)
+
+        // Eigen::Vector3f out_light = 2 * (light.position - point).dot(normal).dot(normal) - (light.position - point);
+
+        // float spec = max(0, out_light.dot(eye_pos - point));
+
+        // Eigen::Vector3f spectular = ks.array() * (light.intensity.array() * spec * spec_intensity_coefficient);
+
+        // Calculate the light direction and normalize it
+        Eigen::Vector3f spec_light_dir = (light.position - point).normalized();
+
+        // Calculate the view direction and normalize it
+        Eigen::Vector3f view_dir = (eye_pos - point).normalized();
+
+        // Calculate the reflection direction using the normal and light direction
+        Eigen::Vector3f reflect_dir = (2.0f * normal.dot(spec_light_dir) * normal - spec_light_dir).normalized();
+
+        // Calculate the dot product between reflection direction and view direction
+        float spec = std::pow(std::max(0.0f, reflect_dir.dot(view_dir)), p);
+
+        // Calculate the specular intensity
+        Eigen::Vector3f specular = ks.array() * (light.intensity.array() * spec);
+
+
+        // TODO: Calculate the specular component
+
+        // Accumulate the ambient and diffuse components into the result color
+        // result_color += ambient + diffuse;
+        result_color += ambient + diffuse + specular;
+        // result_color += ambient;
 
     }
 
