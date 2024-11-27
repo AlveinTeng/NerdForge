@@ -251,7 +251,33 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     Eigen::Vector3f normal = payload.normal;
 
     float kh = 0.2, kn = 0.1;
-    
+
+    float x = normal[0];
+    float y = normal[1];
+    float z = normal[2];
+
+    Eigen::Vector3f t, b;
+    t << x * y / std::sqrt(x * x + z * z), std::sqrt(x * x + z * z), z* y / std::sqrt(x * x + z * z);
+    b = normal.cross(t);
+
+
+    Eigen::Matrix3f TBN;
+    TBN << t, b, normal;
+
+    float u = payload.tex_coords.x();
+    float v = payload.tex_coords.y();
+    float w = payload.texture->width;
+    float h = payload.texture->height;
+
+    float dU = kh * kn * (payload.texture->getColor(u + 1.0f / w, v).norm() - payload.texture->getColor(u, v).norm());
+    float dV = kh * kn * (payload.texture->getColor(u, v + 1.0f / h).norm() - payload.texture->getColor(u, v).norm());
+    Eigen::Vector3f ln;
+    ln << -dU, -dV, 1;
+
+    p = p + kn * normal * (payload.texture->getColor(u, v));
+
+    Eigen::Vector3f n = (TBN * ln).normalized();
+
     // TODO: Implement displacement mapping here
     // Let n = normal = (x, y, z)
     // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
@@ -268,10 +294,23 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
     for (auto& light : lights)
     {
+
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        Eigen::Vector3f ambient = ka.array() * amb_light_intensity.array();
 
+        Eigen::Vector3f l = light.position - point;
+        float an = 1 / l.array() * l.array();
 
+        Eigen::Vector3f diffusion = kd * light.intensity * max(0, normal.dot(l.normalized()).normalized()) * an;
+
+        Eigen::Vector3f eye_dir = eye_pos - point;
+
+        Eigen::Vector3f half_vec = (eye_dir.normalized() + l.normalized()) / 2;
+
+        Eigen::Vector3f spectular = ks * light.intensity * max(0, normal.dot(half_vec.normalized()).normalized()) * an;
+
+        result_color += ambient + diffusion + spectular;
 
     }
 
