@@ -324,7 +324,7 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
         Eigen::Vector3f light_vector = (light.position - point).normalized();//得到后还须归一化
         Eigen::Vector3f view_vector = (eye_pos - point).normalized();
         Eigen::Vector3f half_vector = (light_vector + view_vector).normalized();
-        Eigen::Vector3f n_vector = normal.normalized();
+        Eigen::Vector3f n_vector = n.normalized();
  
         //光源到物体的距离————light到point的
         float r2 = (light.position - point).dot(light.position - point);//利用了 a·b/|a||b|=cos<a,b>
