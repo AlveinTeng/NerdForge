@@ -233,6 +233,13 @@ inline Intersection Triangle::getIntersection(Ray ray)
 
     // TODO find ray triangle intersection
 
+    inter.happened = true;
+    inter.coords = ray.origin + t_tmp * ray.direction; // 交点坐标
+    inter.normal = this->normal; // 三角形法线
+    inter.distance = t_tmp;
+    inter.obj = this; // 指向相交的这个三角形对象
+    inter.m = this->m;
+
 
 
 
