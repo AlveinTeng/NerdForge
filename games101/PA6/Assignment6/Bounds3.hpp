@@ -8,6 +8,7 @@
 #include "Vector.hpp"
 #include <limits>
 #include <array>
+#include <algorithm>
 
 class Bounds3
 {
@@ -91,12 +92,33 @@ class Bounds3
 
 
 inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
-                                const std::array<int, 3>& dirIsNeg) const
+    const std::array<int, 3>& dirIsNeg) const
 {
-    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
+    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster than Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
     // TODO test if ray bound intersects
-    
+
+    float tmin = (pMin.x - ray.origin.x) * invDir.x;
+    float tmax = (pMax.x - ray.origin.x) * invDir.x;
+
+    if (dirIsNeg[0] == true) std::swap(tmin, tmax);
+
+    float tymin = (pMin.y - ray.origin.y) * invDir.y;
+    float tymax = (pMax.y - ray.origin.y) * invDir.y;
+
+    if (dirIsNeg[1] == true) std::swap(tymin, tymax);
+
+    float tzmin = (pMin.z - ray.origin.z) * invDir.z;
+    float tzmax = (pMax.z - ray.origin.z) * invDir.z;
+
+    if (dirIsNeg[2] == true) std::swap(tzmin, tzmax);
+
+    // Ensure that there is an overlap in t ranges
+    float tminFinal = std::max(tmin, std::max(tymin, tzmin));
+    float tmaxFinal = std::min(tmax, std::min(tymax, tzmax));
+
+    // If the maximum t is greater than the minimum t, there is an intersection
+    return tmaxFinal >= std::max(0.0f, tminFinal); // tmax should be >= 0
 }
 
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)

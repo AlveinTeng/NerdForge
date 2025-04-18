@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <stdlib.h>
 #include <cassert>
 #include "BVH.hpp"
 
@@ -105,5 +106,43 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
+    Bounds3 bounds = node->bounds;
 
+    // Check if the ray intersects the bounding box
+    std::array<int, 3> dirIsNeg;
+    for (int i = 0; i < 3; ++i) {
+        dirIsNeg[i] = ray.direction[i] > 0;
+    }
+
+    // If the ray doesn't intersect the bounding box, return an empty intersection
+    if (!bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
+        return Intersection();
+    }
+
+    // If it's a leaf node, return the intersection of the object
+    if (!node->left && !node->right) {
+        return node->object->getIntersection(ray);
+    }
+
+    // Initialize intersection result (use a large value for initial t)
+    Intersection bestIntersection;
+    // bestIntersection.t = std::numeric_limits<float>::max();
+
+    // Recursively check both child nodes and find the closest intersection
+    if (node->left) {
+        Intersection leftIntersection = getIntersection(node->left, ray);
+        if (leftIntersection.distance < bestIntersection.distance) {
+            bestIntersection = leftIntersection;
+        }
+    }
+
+    if (node->right) {
+        Intersection rightIntersection = getIntersection(node->right, ray);
+        if (rightIntersection.distance < bestIntersection.distance) {
+            bestIntersection = rightIntersection;
+        }
+    }
+
+    // Return the closest intersection
+    return bestIntersection;
 }

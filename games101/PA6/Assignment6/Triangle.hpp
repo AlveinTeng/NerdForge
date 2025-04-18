@@ -240,9 +240,6 @@ inline Intersection Triangle::getIntersection(Ray ray)
     inter.obj = this; // 指向相交的这个三角形对象
     inter.m = this->m;
 
-
-
-
     return inter;
 }
 
